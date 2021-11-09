@@ -8,6 +8,7 @@ const cjsResolve = require('ncjsm/resolve/sync');
 const spawn = require('child-process-ext/spawn');
 const overrideArgv = require('process-utils/override-argv');
 const resolveAwsEnv = require('@serverless/test/resolve-env');
+const runServerless = require('../../../utils/run-serverless');
 const Serverless = require('../../../../lib/Serverless');
 const CLI = require('../../../../lib/classes/CLI');
 const resolveInput = require('../../../../lib/cli/resolve-input');
@@ -119,6 +120,10 @@ describe('PluginManager', () => {
                   usage: 'The function you want to deploy (e.g. --function create)',
                 },
               },
+            },
+            other: {
+              usage: 'Deploy to other infrastructure',
+              lifecycleEvents: ['resources', 'functions'],
             },
           },
         },
@@ -417,7 +422,7 @@ describe('PluginManager', () => {
 
   beforeEach(() => {
     ({ restoreEnv } = overrideEnv({ whitelist: ['APPDATA', 'PATH'] }));
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     serverless.cli = new CLI();
     serverless.processedInput = { commands: ['print'], options: {} };
     pluginManager = new PluginManager(serverless);
@@ -1252,7 +1257,7 @@ describe('PluginManager', () => {
     let pluginManagerInstance;
 
     beforeEach(() => {
-      serverlessInstance = new Serverless();
+      serverlessInstance = new Serverless({ commands: [], options: {} });
       serverlessInstance.configurationInput = null;
       serverlessInstance.serviceDir = 'my-service';
       pluginManagerInstance = new PluginManager(serverlessInstance);
@@ -1879,8 +1884,6 @@ describe('PluginManager', () => {
 
     before(() => {
       env = resolveAwsEnv();
-      // Test may be run against deprecated Node.js versions
-      env.SLS_DEPRECATION_DISABLE = 'OUTDATED_NODEJS';
     });
 
     beforeEach(() => {
@@ -1934,5 +1937,32 @@ describe('PluginManager', () => {
         // Couldn't delete temporary file
       }
     });
+  });
+});
+
+describe('test/unit/lib/classes/PluginManager.test.js', () => {
+  it('should pass log writers to external plugins', async () => {
+    const { serverless } = await runServerless({
+      fixture: 'plugin',
+      command: 'print',
+    });
+    const plugin = Array.from(serverless.pluginManager.externalPlugins).find(
+      (externalPlugin) => externalPlugin.constructor.name === 'TestPlugin'
+    );
+    expect(typeof plugin.utils.log).to.equal('function');
+    expect(typeof plugin.utils.progress.create).to.equal('function');
+    expect(typeof plugin.utils.writeText).to.equal('function');
+  });
+
+  it('should error out for duplicate plugin definiton', async () => {
+    await expect(
+      runServerless({
+        fixture: 'plugin',
+        command: 'print',
+        configExt: {
+          plugins: ['./plugin', './plugin'],
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property('code', 'DUPLICATE_PLUGIN_DEFINITION');
   });
 });

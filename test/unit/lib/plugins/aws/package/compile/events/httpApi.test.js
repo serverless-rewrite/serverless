@@ -201,7 +201,6 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
                   audience: 'audiencexxx',
                 },
               },
-              useProviderTags: true,
             },
             logs: {
               httpApi: true,
@@ -1188,5 +1187,24 @@ describe('lib/plugins/aws/package/compile/events/httpApi.test.js', () => {
         ).to.eventually.be.rejected.and.have.property('code', 'EXTERNAL_HTTP_API_LOGS_CONFIG');
       });
     });
+  });
+
+  it('should trigger a deprecation when `provider.httpApi.useProviderTags` is set', async () => {
+    await expect(
+      runServerless({
+        fixture: 'httpApi',
+        configExt: {
+          provider: {
+            httpApi: {
+              useProviderTags: true,
+            },
+          },
+        },
+        command: 'package',
+      })
+    ).to.eventually.be.rejected.and.have.property(
+      'code',
+      'REJECTED_DEPRECATION_AWS_HTTP_API_USE_PROVIDER_TAGS_PROPERTY'
+    );
   });
 });

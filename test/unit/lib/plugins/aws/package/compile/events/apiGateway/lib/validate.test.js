@@ -1,12 +1,17 @@
 'use strict';
 
-const expect = require('chai').expect;
+const chai = require('chai');
 const sinon = require('sinon');
 const runServerless = require('../../../../../../../../../utils/run-serverless');
 const AwsCompileApigEvents = require('../../../../../../../../../../lib/plugins/aws/package/compile/events/apiGateway/index');
 const Serverless = require('../../../../../../../../../../lib/Serverless');
 const AwsProvider = require('../../../../../../../../../../lib/plugins/aws/provider');
 const ServerlessError = require('../../../../../../../../../../lib/serverless-error');
+
+chai.use(require('chai-as-promised'));
+chai.use(require('sinon-chai'));
+
+const expect = chai.expect;
 
 describe('#validate()', () => {
   let serverless;
@@ -1421,6 +1426,22 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
       command: 'package',
       configExt: {
         functions: {
+          authorized: {
+            handler: 'index.handler',
+            events: [
+              {
+                http: {
+                  method: 'get',
+                  path: '/authorized',
+                  authorizer: {
+                    type: 'REQUEST',
+                    name: 'basic',
+                    resultTtlInSeconds: 0,
+                  },
+                },
+              },
+            ],
+          },
           corsDefault: {
             handler: 'index.handler',
             events: [
@@ -1470,5 +1491,48 @@ describe('test/unit/lib/plugins/aws/package/compile/events/apiGateway/lib/valida
       getApiGatewayMethod('/cors-default-set-by-object', 'OPTIONS').Properties.Integration
         .IntegrationResponses[0].ResponseParameters
     ).to.deep.eq(expected);
+  });
+
+  it('Should not set default `identitySource` for `request` authorizers with caching disabled', async () => {
+    expect(cfResources[naming.getAuthorizerLogicalId('basic')].Properties.IdentitySource).to.be
+      .undefined;
+  });
+
+  it('Should error when using external API Gateway and enabling tracing', async () => {
+    await expect(
+      runServerless({
+        fixture: 'apiGateway',
+        command: 'package',
+        configExt: {
+          provider: {
+            apiGateway: {
+              restApiId: 'xxx',
+            },
+            tracing: {
+              apiGateway: true,
+            },
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property('code', 'API_GATEWAY_EXTERNAL_API_TRACING');
+  });
+
+  it('Should error when using external API Gateway and enabling logs', async () => {
+    await expect(
+      runServerless({
+        fixture: 'apiGateway',
+        command: 'package',
+        configExt: {
+          provider: {
+            apiGateway: {
+              restApiId: 'xxx',
+            },
+            logs: {
+              restApi: true,
+            },
+          },
+        },
+      })
+    ).to.be.eventually.rejected.and.have.property('code', 'API_GATEWAY_EXTERNAL_API_LOGS');
   });
 });
