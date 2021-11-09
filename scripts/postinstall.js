@@ -1,5 +1,7 @@
 'use strict';
 
+console.log(`working directory ${process.cwd()}`)
+
 const boxen = require('boxen');
 const chalk = require('chalk');
 const isStandaloneExecutable = require('../lib/utils/isStandaloneExecutable');
