@@ -7,8 +7,8 @@ const path = require('path');
 const _ = require('lodash');
 const isPlainObject = require('type/plain-object/is');
 const yaml = require('js-yaml');
-const cloudformationSchema = require('@serverless/utils/cloudformation-schema');
-const { legacy, log, progress, style } = require('@serverless/utils/log');
+const cloudformationSchema = require('@serverless-rewrite/utils/cloudformation-schema');
+const { legacy, log, progress, style } = require('@serverless-rewrite/utils/log');
 const yamlAstParser = require('../lib/utils/yamlAstParser');
 const npmCommandDeferred = require('../lib/utils/npm-command-deferred');
 const {

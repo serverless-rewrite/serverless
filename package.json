@@ -1,11 +1,10 @@
 {
-  "name": "serverless",
+  "name": "@serverless-rewrite/serverless",
   "version": "3.0.0-pre",
   "description": "Serverless Framework - Build web, mobile and IoT applications with serverless architectures using AWS Lambda, Azure Functions, Google CloudFunctions & more",
   "preferGlobal": true,
   "homepage": "https://serverless.com/framework/docs/",
-  "author": "serverless.com",
-  "repository": "serverless/serverless",
+  "repository": "serverless-rewrite/serverless",
   "keywords": [
     "serverless",
     "lambda",
@@ -22,11 +21,10 @@
     "sls": "./bin/serverless.js"
   },
   "dependencies": {
+    "@serverless-rewrite/utils": "^6.0.1",
     "@serverless/cli": "^1.5.3",
     "@serverless/components": "^3.17.2",
-    "@serverless/dashboard-plugin": "pre-6",
     "@serverless/platform-client": "^4.3.0",
-    "@serverless/utils": "pre-6",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
     "archiver": "^5.3.0",
