@@ -26,7 +26,6 @@ let serviceDir = null;
 let configuration = null;
 let serverless;
 const commandUsage = {};
-const variableSourcesInConfig = new Set();
 
 // Inquirer async operations do not keep node process alive
 // We need to issue a keep alive timer so process does not die
@@ -45,7 +44,6 @@ process.once('uncaughtException', (error) => {
     configuration,
     serverless,
     commandUsage,
-    variableSourcesInConfig,
   });
 });
 
@@ -260,7 +258,6 @@ const processSpanPromise = (async () => {
               options: filterSupportedOptions(options, { commandSchema, providerName }),
               fulfilledSources: new Set(['file', 'self', 'strToBool']),
               propertyPathsToResolve: new Set(['provider\0name', 'provider\0stage', 'useDotenv']),
-              variableSourcesInConfig,
             };
             await resolveVariables(resolverConfiguration);
 
@@ -696,7 +693,6 @@ const processSpanPromise = (async () => {
       configuration,
       serverless,
       commandUsage,
-      variableSources: variableSourcesInConfig,
     });
   } finally {
     clearTimeout(keepAliveTimer);
